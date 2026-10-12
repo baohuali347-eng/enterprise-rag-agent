@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# 数据与环境
+data/
+.env
+.DS_Store
+
+# 本地模型权重
+models/
