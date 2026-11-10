@@ -1,0 +1,396 @@
+{
+  "version": "1.0",
+  "origin": "manually_designed",
+  "description": "人工基于当前429份飞书帮助语料设计的用户口吻场景，不是真实用户日志。包含单轮、口语、多轮、领域内无答案、领域外及需澄清问题。用于开发评测，尚无独立人工双人验收。",
+  "corpus_sha256": "897ace33f8a9becb426e772646388f2e407c2d48593414c42feda8ab111432dc",
+  "cases": [
+    {
+      "id": "direct-01",
+      "category": "direct",
+      "turns": [
+        {
+          "question": "我是群主，怎么关闭新成员查看群历史消息的权限？",
+          "expected_behavior": "answer",
+          "reference_answer": "群右上角设置→群管理→进群管理，取消勾选新成员可查看历史消息。",
+          "evidence": [
+            {
+              "doc_id": "055413210736",
+              "quote": "勾选即可开启新成员查看历史消息权限,取消勾选则关闭。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "direct-02",
+      "category": "direct",
+      "turns": [
+        {
+          "question": "飞书群主想导出群成员名单，需要什么前提，在哪里操作？",
+          "expected_behavior": "answer",
+          "reference_answer": "企业管理员需先开启导出权限；群主或群管理员在群设置→群成员→导出群成员信息，群里收到仅自己可见的结果消息。",
+          "evidence": [
+            {
+              "doc_id": "990528810925",
+              "quote": "说明:需要企业管理员开启导出群成员信息权限后,才可操作"
+            },
+            {
+              "doc_id": "990528810925",
+              "quote": "点击群成员列表右上角的 **导出群成员信息**。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "direct-03",
+      "category": "direct",
+      "turns": [
+        {
+          "question": "企业知识库误删了20天，还能恢复吗？需要谁去哪里操作？",
+          "expected_behavior": "answer",
+          "reference_answer": "90天内可恢复；企业超级管理员或有知识库功能管理权限的管理员在管理后台→产品设置→知识库→企业知识库管理，找到被删知识库选择恢复。",
+          "evidence": [
+            {
+              "doc_id": "557043079436",
+              "quote": "只有企业超级管理员、或是拥有知识库功能管理权限的管理员,可恢复被删除的知识库,且仅支持恢复 90 天内删除的知识库。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "direct-04",
+      "category": "direct",
+      "turns": [
+        {
+          "question": "一个飞书群最多能配置几个部门的成员自动入群？",
+          "expected_behavior": "answer",
+          "reference_answer": "最多5条自动入群规则，对应最多5个部门；不要把一个部门最多绑定5个群与它混淆。",
+          "evidence": [
+            {
+              "doc_id": "028311199030",
+              "quote": "一个群组最多可以添加 5 条自动入群规则,即最多可以设置 5 个部门的成员自动加入该群。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "colloquial-01",
+      "category": "colloquial",
+      "turns": [
+        {
+          "question": "飞书打卡老说我没加考勤组，是不是今天就没法打卡了？电脑上也找不到按钮。",
+          "expected_behavior": "answer",
+          "reference_answer": "未加入考勤组仍可用移动端上下班打卡并记录；此时桌面端不支持打卡，联系管理员加入考勤组后记录才能同步到该组统计。",
+          "evidence": [
+            {
+              "doc_id": "360049067420",
+              "quote": "未加入考勤组时桌面端不支持打卡,需要前往移动端打卡。"
+            },
+            {
+              "doc_id": "360049067420",
+              "quote": "只有添加进考勤组后,你的打卡记录才能同步到该考勤组的考勤统计中。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "colloquial-02",
+      "category": "colloquial",
+      "turns": [
+        {
+          "question": "我们想把飞书消息撤回时间改长一点，我是超级管理员，这个在哪改？",
+          "expected_behavior": "answer",
+          "reference_answer": "管理后台→产品设置→即时消息→消息权限管控→编辑；允许撤回后设置时间限制并保存。默认24小时，可选其他时间或自定义，约10分钟生效。",
+          "evidence": [
+            {
+              "doc_id": "325339752183",
+              "quote": "点击 **消息权限管控**,随后点击 **编辑**。"
+            },
+            {
+              "doc_id": "325339752183",
+              "quote": "默认为消息发出后 **24 小时内** 允许撤回或编辑消息。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "colloquial-03",
+      "category": "colloquial",
+      "turns": [
+        {
+          "question": "浏览器里打开飞书文档又是另一个号，怎么换回有权限的那个号啊？",
+          "expected_behavior": "answer",
+          "reference_answer": "云文档主页或任意文档右上角头像→切换账号；无权限页面若展示有权访问账号，可点击该账号右侧切换并访问。",
+          "evidence": [
+            {
+              "doc_id": "360044240054",
+              "quote": "点击右上角个人头像,点击 **切换账号**"
+            },
+            {
+              "doc_id": "360044240054",
+              "quote": "在该账号右侧点击 **切换并访问,**可以切换云文档的登录账号。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "colloquial-04",
+      "category": "colloquial",
+      "turns": [
+        {
+          "question": "我想搭个项目管理台账，还想按规则自动提醒，用飞书普通表格还是多维表格更合适？",
+          "expected_behavior": "answer",
+          "reference_answer": "优先多维表格，支持项目管理业务系统和自动化/工作流；电子表格适合数据分析，但没有这里所述自动化流程功能。",
+          "evidence": [
+            {
+              "doc_id": "501142825365",
+              "quote": "多维表格支持搭建项目管理和订单管理等业务系统"
+            },
+            {
+              "doc_id": "501142825365",
+              "quote": "不支持自动化流程功能"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "multi-01",
+      "category": "multi_turn",
+      "turns": [
+        {
+          "question": "我是群管理员，想让新进群的人看不到以前聊天，怎么设？",
+          "expected_behavior": "answer",
+          "reference_answer": "在群设置→群管理→进群管理取消勾选新成员可查看历史消息。",
+          "evidence": [
+            {
+              "doc_id": "055413210736",
+              "quote": "勾选即可开启新成员查看历史消息权限,取消勾选则关闭。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        },
+        {
+          "question": "关掉以后，他们还能搜到以前发群里的云文档吗？",
+          "expected_behavior": "answer",
+          "reference_answer": "可以。关闭历史消息查看后，新成员仍可搜索并查看分享至群内的历史云文档；不能误说所有历史内容都不可见。",
+          "evidence": [
+            {
+              "doc_id": "055413210736",
+              "quote": "可搜索并查看分享至群内的历史云文档。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "multi-02",
+      "category": "multi_turn",
+      "turns": [
+        {
+          "question": "企业知识库昨天被误删了，能找回来吗？",
+          "expected_behavior": "answer",
+          "reference_answer": "90天内可由企业超级管理员或知识库功能管理权限管理员在管理后台恢复。",
+          "evidence": [
+            {
+              "doc_id": "557043079436",
+              "quote": "且仅支持恢复 90 天内删除的知识库。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        },
+        {
+          "question": "那如果是我个人账号创建的那个呢？",
+          "expected_behavior": "answer",
+          "reference_answer": "个人账号下创建的知识库删除后无法恢复；不能沿用企业知识库的90天恢复规则。",
+          "evidence": [
+            {
+              "doc_id": "557043079436",
+              "quote": "飞书个人账号下所创建的知识库删除后无法恢复,请谨慎操作。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "multi-03",
+      "category": "multi_turn",
+      "turns": [
+        {
+          "question": "我是部门负责人也是群主，想让部门新人自动进这个群，在哪里设置？",
+          "expected_behavior": "answer",
+          "reference_answer": "群设置→群管理→谁可以自动加入此群，添加负责部门和成员类型的自动入群规则并保存。",
+          "evidence": [
+            {
+              "doc_id": "028311199030",
+              "quote": "**群管理** > **谁可以自动加入此群**。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        },
+        {
+          "question": "把这个规则删了，已经进来的同事会自动被踢出去吗？",
+          "expected_behavior": "answer",
+          "reference_answer": "不会。删除自动入群规则后，已在群内的部门成员不会被自动移出；不要混淆修改规则可能移除不符合规则的成员。",
+          "evidence": [
+            {
+              "doc_id": "028311199030",
+              "quote": "删除自动入群规则后,已在群内的部门成员不会被自动移出群组。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "multi-04",
+      "category": "multi_turn",
+      "turns": [
+        {
+          "question": "我是群主，电脑上怎么把群主身份交给同事？",
+          "expected_behavior": "answer",
+          "reference_answer": "桌面端群设置→群管理→页面最下方转让群主，选择群成员并确定。",
+          "evidence": [
+            {
+              "doc_id": "360025144134-0",
+              "quote": "点击页面最下方的 **转让群主**,选择需要转让的群成员,点击 **确定** 即可。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        },
+        {
+          "question": "不转让，直接解散这个群的话以后还能恢复吗？",
+          "expected_behavior": "answer",
+          "reference_answer": "解散群组后不可恢复。可以选择为成员保留历史消息，但保留历史不代表群组可恢复。",
+          "evidence": [
+            {
+              "doc_id": "360025144134-0",
+              "quote": "解散群组后不可恢复,请谨慎操作。"
+            }
+          ],
+          "annotation_note": "人工设计；按当前本地语料逐项核对，接受等价表达，不要求逐字匹配。"
+        }
+      ]
+    },
+    {
+      "id": "missing-01",
+      "category": "in_domain_unanswerable",
+      "turns": [
+        {
+          "question": "飞书审批如何撤回？我是提交人，已经提交了。",
+          "expected_behavior": "decline",
+          "reference_answer": "当前资料没有提交人撤回已提交审批的具体步骤，应说明资料不足并建议查阅对应帮助或联系管理员；不能用消息撤回步骤回答，也不能断言产品不支持审批撤回。",
+          "evidence": [],
+          "annotation_note": "已检索全体429份语料中审批与撤回/撤销的共现，并复核11份审批语料；只有流程是否允许撤销等配置描述，没有提交人的撤回操作步骤。无答案标签仅针对此语料快照。"
+        }
+      ]
+    },
+    {
+      "id": "missing-02",
+      "category": "in_domain_unanswerable",
+      "turns": [
+        {
+          "question": "我们公司报销审批提交以后，具体多少分钟内允许撤回？",
+          "expected_behavior": "decline",
+          "reference_answer": "无法从通用帮助文档确定本公司的报销流程配置，应说明需要管理员或具体流程设置；不能套用消息撤回默认24小时。",
+          "evidence": [],
+          "annotation_note": "租户配置未知：公开通用文档不包含该公司的具体报销流程及撤回时限。"
+        }
+      ]
+    },
+    {
+      "id": "missing-03",
+      "category": "in_domain_unanswerable",
+      "turns": [
+        {
+          "question": "我们公司考勤迟到十分钟到底扣多少钱？",
+          "expected_behavior": "decline",
+          "reference_answer": "当前语料不包含公司的迟到扣款制度，不能猜测金额，应向本公司HR或考勤管理员核实。",
+          "evidence": [],
+          "annotation_note": "租户制度未知：当前语料是产品操作帮助，没有用户公司的迟到扣款政策。"
+        }
+      ]
+    },
+    {
+      "id": "missing-04",
+      "category": "in_domain_unanswerable",
+      "turns": [
+        {
+          "question": "我们公司研发一组那个飞书群的群ID具体是多少？",
+          "expected_behavior": "decline",
+          "reference_answer": "无法从通用知识库得知具体群ID，需用户补充或从实际群信息核实，不能编造ID。",
+          "evidence": [],
+          "annotation_note": "租户数据未知：没有连接用户企业群组数据，公开帮助文档不提供用户的具体群ID。"
+        }
+      ]
+    },
+    {
+      "id": "ood-01",
+      "category": "out_of_domain",
+      "turns": [
+        {
+          "question": "Python 的 GIL 是什么？",
+          "expected_behavior": "decline",
+          "reference_answer": "说明飞书产品知识库无法解答该主题；不能直接提供一段Python知识当作知识库答案。",
+          "evidence": [],
+          "annotation_note": "领域外问题：Python解释器原理不属于飞书帮助中心产品操作知识。"
+        }
+      ]
+    },
+    {
+      "id": "ood-02",
+      "category": "out_of_domain",
+      "turns": [
+        {
+          "question": "北京明天天气怎么样？",
+          "expected_behavior": "decline",
+          "reference_answer": "说明当前知识库无法提供实时天气，不能猜测明天天气。",
+          "evidence": [],
+          "annotation_note": "领域外问题：知识库没有实时天气数据或天气工具。"
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-01",
+      "category": "ambiguous",
+      "turns": [
+        {
+          "question": "它怎么设置？",
+          "expected_behavior": "clarify",
+          "reference_answer": "没有历史无法确定它指什么，应询问具体功能或设置对象；不能默认成某个飞书功能提供步骤。",
+          "evidence": [],
+          "annotation_note": "无历史的指代不明问题；缺少设置对象，没有唯一可标注文档。"
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-02",
+      "category": "ambiguous",
+      "turns": [
+        {
+          "question": "怎么把权限关掉？",
+          "expected_behavior": "clarify",
+          "reference_answer": "先询问是哪类权限或哪个对象，例如云文档、群成员或管理后台权限；不能自选一个对象直接给确定操作步骤。",
+          "evidence": [],
+          "annotation_note": "多个飞书模块都有权限设置，未给出对象，期望澄清。"
+        }
+      ]
+    }
+  ]
+}

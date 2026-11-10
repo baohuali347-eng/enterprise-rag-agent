@@ -11,7 +11,7 @@
    检索需要小块（精确匹配、噪音少），生成需要大块（上下文完整、答案不残缺）。
    两者目标冲突，所以拆两层：
    - 子 chunk（~400 字）：建索引、做检索
-   - 父 chunk（完整章节，≤2500 字）：检索命中后取父文档送入 LLM
+   - 父 chunk（章节或章节片段，含标题≤2500 字）：检索命中后送入 LLM
    类比：目录（子 chunk）找到章节号，翻到整章（父 chunk）阅读。
 
 3. 为什么子 chunk 要带标题路径前缀？
@@ -78,16 +78,19 @@ def strip_front_matter(text: str) -> tuple[str, str]:
             continue
         start = i
         break
+    else:
+        start = len(lines)
     return "\n".join(lines[start:]), title
 
 
 def split_sections(body: str) -> list[Section]:
     """把正文按标题层级切成 Section 列表；无标题的正文整体为一个 Section。"""
     lines = body.splitlines()
-    sections: list[Section] = []
-    stack: list[tuple[int, str]] = []  # (level, text)
-    buf: list[str] = []
+    sections: list[Section] = [] #把正文内容进行拆分个sections
+    stack: list[tuple[int, str]] = []  # (level, text)，表示标题部分。用栈来表示。
+    buf: list[str] = [] #缓冲区，正文的部分
 
+    # 先把当前缓冲区的正文写入 sections
     def flush() -> None:
         text = "\n".join(buf).strip()
         if not text:
@@ -95,6 +98,7 @@ def split_sections(body: str) -> list[Section]:
         path = [t for _, t in stack]
         sections.append(Section(heading_path=path, level=stack[-1][0] if stack else 1, body=text))
 
+    # 遍历每一行，遇到标题就 flush 之前的正文，更新标题路径
     for line in lines:
         m = HEADING_RE.match(line.strip())
         if m:
@@ -114,10 +118,13 @@ def split_sections(body: str) -> list[Section]:
     merged: list[Section] = []
     for sec in sections:
         prev_path = merged[-1].heading_path if merged else []
+        #判断是否是上一节的子标题
         is_descendant = (len(sec.heading_path) > len(prev_path)
                          and sec.heading_path[:len(prev_path)] == prev_path)
         if merged and len(sec.body) < 100 and is_descendant:
-            merged[-1].body += "\n" + sec.body
+            # 合并时保留子标题，否则“开启/关闭”等操作会失去语义边界。
+            subheading = " > ".join(sec.heading_path[len(prev_path):])
+            merged[-1].body += f"\n{subheading}\n{sec.body}"
         else:
             merged.append(sec)
     return merged
@@ -125,64 +132,79 @@ def split_sections(body: str) -> list[Section]:
 
 def split_child_windows(text: str, size: int = config.CHILD_CHUNK_SIZE,
                         overlap: int = config.CHILD_CHUNK_OVERLAP) -> list[str]:
-    """在段落边界上滑动窗口切分长文本，窗口间带重叠。"""
-    if len(text) <= size:
-        return [text]
-    paras = text.split("\n")
+    """优先在换行/句末切分；超长单段按字符切分，严格限制窗口长度。
+
+    返回原文的连续切片，不丢字符；相邻窗口保留 overlap 个字符。
+    """
+    if size <= 0 or not 0 <= overlap < size:
+        raise ValueError("要求 size > 0 且 0 <= overlap < size")
+    if not text.strip():
+        return []
     windows: list[str] = []
-    cur: list[str] = []
-    cur_len = 0
-    for para in paras:
-        plen = len(para) + 1
-        if cur_len + plen > size and cur:
-            windows.append("\n".join(cur))
-            # 重叠：保留末尾若干段
-            overlap_text, overlap_len = [], 0
-            for p in reversed(cur):
-                if overlap_len + len(p) + 1 > overlap:
+    start = 0
+    while start < len(text):
+        end = min(start + size, len(text))
+        if end < len(text):
+            # 只在窗口后半段寻找边界，避免切出过短片段或被重叠阻止前进。
+            lower = start + max(size // 2, overlap + 1)
+            for separators in ("\n", "。！？!?；;"):
+                boundary = max(text.rfind(s, lower, end) for s in separators)
+                if boundary >= lower:
+                    end = boundary + 1
                     break
-                overlap_text.insert(0, p)
-                overlap_len += len(p) + 1
-            cur = overlap_text
-            cur_len = overlap_len
-        cur.append(para)
-        cur_len += plen
-    if cur:
-        windows.append("\n".join(cur))
+        windows.append(text[start:end])
+        if end == len(text):
+            break
+        start = end - overlap
     return windows
+
+
+def _chunk_prefix(path: list[str]) -> str:
+    """为正文预留空间；极长标题仅缩短展示前缀，完整路径保留在元数据中。"""
+    prefix = " > ".join(path)
+    limit = min(config.CHILD_CHUNK_SIZE, config.PARENT_MAX_CHARS) // 2
+    if limit < 2:
+        raise ValueError("父子块长度限制至少为 4")
+    return prefix if len(prefix) <= limit else "…" + prefix[-(limit - 1):]
 
 
 def chunk_document(doc: dict, md_text: str) -> tuple[list[ParentChunk], list[ChildChunk]]:
     """把单篇语料切成父/子两层 chunk。"""
     body, title = strip_front_matter(md_text)
+    if not body.strip():
+        return [], []
     sections = split_sections(body) or [Section(heading_path=[title], level=1, body=body)]
 
     parents: list[ParentChunk] = []
     children: list[ChildChunk] = []
     for i, sec in enumerate(sections):
         path = sec.heading_path or [title or f"未命名-{i}"]
-        # 标题路径前缀：去掉顶层文章标题（每个 chunk 已带 doc 级元数据），保留层级
-        prefix = " > ".join(path)
-        pid = f"{doc['doc_id']}#p{i}"
-        parent_text = f"{prefix}\n{sec.body}".strip()
-        parents.append(ParentChunk(
-            chunk_id=pid, doc_id=doc["doc_id"], title=title or path[-1],
-            heading_path=path, text=parent_text,
-            metadata={"category": doc.get("category", ""), "url": doc.get("url", "")},
-        ))
-        if len(sec.body) <= config.CHILD_CHUNK_SIZE:
-            children.append(ChildChunk(
-                chunk_id=f"{pid}#c0", parent_id=pid,
-                text=f"{prefix}\n{sec.body}".strip(),
-                metadata={"char_count": len(sec.body)},
+        prefix = _chunk_prefix(path)
+        prefix_size = len(prefix) + 1
+        parent_budget = config.PARENT_MAX_CHARS - prefix_size
+        child_budget = config.CHILD_CHUNK_SIZE - prefix_size
+        # 超长章节继续切成父片段，边界保留重叠，防止操作步骤被切断。
+        parent_windows = split_child_windows(
+            sec.body, size=parent_budget,
+            overlap=min(config.CHILD_CHUNK_OVERLAP, parent_budget - 1),
+        )
+        for part, parent_body in enumerate(parent_windows):
+            # 未拆分章节沿用旧 id；新片段的 id 仍能通过 # 前缀定位原文档。
+            pid = f"{doc['doc_id']}#p{i}" + (f".s{part}" if part else "")
+            parents.append(ParentChunk(
+                chunk_id=pid, doc_id=doc["doc_id"], title=title or path[-1],
+                heading_path=path, text=f"{prefix}\n{parent_body}",
+                metadata={"category": doc.get("category", ""), "url": doc.get("url", "")},
             ))
-        else:
-            windows = split_child_windows(sec.body)
+            windows = split_child_windows(
+                parent_body, size=child_budget,
+                overlap=min(config.CHILD_CHUNK_OVERLAP, child_budget - 1),
+            )
             for j, win in enumerate(windows):
                 children.append(ChildChunk(
                     chunk_id=f"{pid}#c{j}", parent_id=pid,
-                    text=f"{prefix}\n{win}".strip(),
-                    metadata={"char_count": len(win)},
+                    text=f"{prefix}\n{win}",
+                    metadata={"char_count": prefix_size + len(win)},
                 ))
     return parents, children
 
@@ -200,6 +222,8 @@ def chunk_fixed(doc: dict, md_text: str) -> tuple[list[ParentChunk], list[ChildC
     窗口即父文档（父=子），模拟最常见的"朴素分块"做法。
     """
     body, title = strip_front_matter(md_text)
+    if not body.strip():
+        return [], []
     text = f"{title}\n{body}".strip()
     if not text:
         return [], []

@@ -9,6 +9,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from kb_agent.graph.builder import ask
 
 
+#总入口开关
 def main() -> None:
     print("=" * 56)
     print("  企业知识库问答 Agent（LangChain + LangGraph + DeepSeek）")
@@ -24,7 +25,6 @@ def main() -> None:
             continue
         if query.lower() in ("quit", "exit", "退出"):
             break
-        history.append(HumanMessage(content=query))
         result = ask(query, history=history)
         answer = result["answer"]
         print(f"\n助手: {answer}")
@@ -32,7 +32,7 @@ def main() -> None:
             print("\n来源:")
             for s in result["sources"]:
                 print(f"  - {s['title']} ({s['url']})")
-        history.append(AIMessage(content=answer))
+        history.extend([HumanMessage(content=query), AIMessage(content=answer)])
 
 
 if __name__ == "__main__":

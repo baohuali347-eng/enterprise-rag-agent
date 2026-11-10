@@ -1,0 +1,151 @@
+{
+  "version": "1.0",
+  "origin": "manually_designed",
+  "description": "在本轮路由和候选池修改前冻结的8个补充场景（10轮），用于额外回归检查。由同一协作助手设计，不是独立人工测试集或真实用户日志。",
+  "corpus_sha256": "897ace33f8a9becb426e772646388f2e407c2d48593414c42feda8ab111432dc",
+  "cases": [
+    {
+      "id": "check-ambiguous-01",
+      "category": "ambiguous",
+      "turns": [
+        {
+          "question": "这个入口在哪儿？",
+          "expected_behavior": "clarify",
+          "reference_answer": "没有历史或功能名，应先问要找哪个功能的入口，不能自行选一个页面。",
+          "evidence": [],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-ambiguous-02",
+      "category": "ambiguous",
+      "turns": [
+        {
+          "question": "能取消那个吗？",
+          "expected_behavior": "clarify",
+          "reference_answer": "先询问具体想取消什么或哪个操作，没有可消解的对象，不能直接按某个功能给步骤或断言不能取消。",
+          "evidence": [],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-direct-01",
+      "category": "direct",
+      "turns": [
+        {
+          "question": "飞书群成员导出功能能导出外部群名单和群里的机器人吗？",
+          "expected_behavior": "answer",
+          "reference_answer": "均不支持：外部群成员信息及群内机器人信息不支持导出。",
+          "evidence": [
+            {
+              "doc_id": "990528810925",
+              "quote": "不支持导出外部群、超大群的群成员信息及群内的机器人信息。"
+            }
+          ],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-direct-02",
+      "category": "direct",
+      "turns": [
+        {
+          "question": "部门成员自动进群的规则可以直接在手机端添加和修改吗？",
+          "expected_behavior": "answer",
+          "reference_answer": "移动端仅支持查看自动入群规则，不支持添加、修改或删除；应使用支持配置的客户端。",
+          "evidence": [
+            {
+              "doc_id": "028311199030",
+              "quote": "移动端仅支持查看自动入群规则,不支持添加、修改、删除自动入群规则。"
+            }
+          ],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-multi-01",
+      "category": "multi_turn",
+      "turns": [
+        {
+          "question": "这个权限我找不到，怎么打开？",
+          "expected_behavior": "clarify",
+          "reference_answer": "先询问要打开哪个对象的什么权限，没有上下文不能默认多维表格或其他功能。",
+          "evidence": [],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        },
+        {
+          "question": "我是群管理员，想让新进群的人能看以前聊天记录。",
+          "expected_behavior": "answer",
+          "reference_answer": "群设置→群管理→进群管理，勾选新成员可查看历史消息即可开启；明确针对群历史消息权限。",
+          "evidence": [
+            {
+              "doc_id": "055413210736",
+              "quote": "勾选即可开启新成员查看历史消息权限,取消勾选则关闭。"
+            }
+          ],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-multi-02",
+      "category": "multi_turn",
+      "turns": [
+        {
+          "question": "我是群管理员，怎么开启新进群成员的历史聊天可见？",
+          "expected_behavior": "answer",
+          "reference_answer": "在群设置→群管理→进群管理勾选新成员可查看历史消息。",
+          "evidence": [
+            {
+              "doc_id": "055413210736",
+              "quote": "勾选即可开启新成员查看历史消息权限,取消勾选则关闭。"
+            }
+          ],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        },
+        {
+          "question": "如果它是话题群呢？",
+          "expected_behavior": "answer",
+          "reference_answer": "话题群不支持此功能，不应沿用普通群的开关步骤。",
+          "evidence": [
+            {
+              "doc_id": "055413210736",
+              "quote": "话题群不支持此功能。"
+            }
+          ],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-missing-01",
+      "category": "in_domain_unanswerable",
+      "turns": [
+        {
+          "question": "我们公司现在的飞书消息撤回时限被管理员设成多久了？",
+          "expected_behavior": "decline",
+          "reference_answer": "通用文档不能确定该租户当前实际配置，需要管理员查看或用户提供设置；不能把通用默认24小时当成该公司的当前值。",
+          "evidence": [],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    },
+    {
+      "id": "check-ood-01",
+      "category": "out_of_domain",
+      "turns": [
+        {
+          "question": "我明天从北京飞上海，航班几点起飞？",
+          "expected_behavior": "decline",
+          "reference_answer": "当前飞书帮助知识库没有用户机票或实时航班信息，应承认无法确认，不能猜测航班时刻。",
+          "evidence": [],
+          "annotation_note": "在本轮修改路由和检索代码前固定的补充场景；由协作助手根据现有语料编写，未经独立人工验收。"
+        }
+      ]
+    }
+  ]
+}

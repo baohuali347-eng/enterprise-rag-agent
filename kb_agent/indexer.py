@@ -42,6 +42,10 @@ def tokenize(text: str) -> list[str]:
     return [t for t in jieba.lcut_for_search(text) if t.strip()]
 
 
+"""
+build_dense()：将文本转换为向量，进行语义检索。
+build_sparse()：基于关键词建立 BM25 索引，进行关键词检索。
+"""
 class Indexer:
     def __init__(self, index_dir: Path = config.INDEX_DIR):
         self.index_dir = index_dir
@@ -63,15 +67,19 @@ class Indexer:
             p["chunk_id"]: p
             for p in (json.loads(l) for l in parents_path.read_text(encoding="utf-8").splitlines() if l.strip())
         }
+        #打印结果
         logger.info(f"[{variant}] 加载语料: {len(self.children[variant])} 个子 chunk, "
                     f"{len(self.parents[variant])} 个父文档")
 
     # ---------- 向量索引 ----------
+    # 加载模型 → 读取子分块 → 文本向量化 → 存入 ChromaDB → 建立向量索引。
     def build_dense(self, variant: str = "hier") -> None:
         logger.info("加载 BGE-M3 Embedding 模型（首次运行需下载模型）…")
         model = SentenceTransformer(config.EMBED_MODEL, device="cpu")
         spec = VARIANTS[variant]
+        ## 创建一个持久化的 ChromaDB 客户端。向量数据可以保存在本地磁盘中，而不是只存在于程序运行期间的内存里。path就是路径
         client = chromadb.PersistentClient(path=str(self.index_dir / "chroma"))
+
         # 重建集合（语料变化时全量重建，规模小、可接受）
         existing = [c.name for c in client.list_collections()]
         if spec["collection"] in existing:
@@ -97,6 +105,7 @@ class Indexer:
         logger.info(f"[{variant}] 向量索引完成: {len(children)} 条向量 → {collection.count()}")
 
     # ---------- BM25 索引 ----------
+    #给子块建立 BM25 关键词检索索引，并保存到本地。
     def build_sparse(self, variant: str = "hier") -> None:
         logger.info(f"[{variant}] 构建 BM25 索引（jieba 分词）…")
         children = self.children[variant]

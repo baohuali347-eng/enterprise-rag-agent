@@ -27,7 +27,7 @@ class RetrievedChunkDict(TypedDict, total=False):
 class ReflectionDict(TypedDict, total=False):
     ok: bool
     reason: str        # 不合格原因
-    suggestion: str    # 改进建议（用于查询扩展重试）
+    suggestion: str    # 聚焦缺失证据的补查查询
 
 
 class AgentState(TypedDict, total=False):
@@ -35,7 +35,9 @@ class AgentState(TypedDict, total=False):
     messages: Annotated[list[BaseMessage], add_messages]
     query: str                      # 用户当前输入
     # 路由
-    route: str                      # kb / chitchat
+    route: str                      # kb / chitchat / clarify
+    route_reason: str
+    clarification_question: str
     # 查询处理
     standalone_query: str           # 多轮改写后的独立查询
     # 检索

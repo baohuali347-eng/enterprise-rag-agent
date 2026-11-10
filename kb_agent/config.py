@@ -38,21 +38,23 @@ EMBED_MODEL = os.getenv("EMBED_MODEL", _local_model("bge-m3"))
 RERANK_MODEL = os.getenv("RERANK_MODEL", _local_model("bge-reranker-v2-m3"))
 
 # ---------- 分块参数 ----------
-# 检索单元（子 chunk）的目标长度，单位：字符（中文约 1 字 ≈ 1 token）
+# 检索单元（子 chunk）的最大字符数，包含标题前缀；不等同于 token 数
 CHILD_CHUNK_SIZE = 400
 CHILD_CHUNK_OVERLAP = 50
-# 父文档：完整章节，送入 LLM 生成答案时使用
+# 父文档：章节或章节片段，最大字符数包含标题前缀
 PARENT_MAX_CHARS = 2500
 
 # ---------- 检索参数 ----------
 DENSE_TOP_K = 30     # 向量检索候选数
 BM25_TOP_K = 30      # BM25 候选数
+RERANK_CANDIDATE_K = 40  # RRF 后的重排候选池；候选池过小可能漏掉操作章节
 RERANK_TOP_K = 5     # 重排后送入 LLM 的最终数量
 # 相关性阈值：检索最高分低于此值直接拒答，防止用无关内容硬编
 RELEVANCE_THRESHOLD = 0.35
 
 # ---------- Agent 参数 ----------
 MAX_RETRY = 1  # 反思节点不满意时，最多重新检索一次
+HISTORY_MAX_MESSAGES = 8  # 最近 4 轮已完成对话，改写、生成和反思共享
 
 # ---------- 爬虫参数 ----------
 CRAWL_DELAY = 0.8  # 每次请求间隔（秒），对目标站点保持礼貌

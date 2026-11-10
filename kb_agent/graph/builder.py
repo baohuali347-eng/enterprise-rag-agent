@@ -2,6 +2,7 @@
 
 流程:
     START → rewrite → route ──chitchat──→ chat_answer ─────────────→ END
+                      ├────clarify────→ clarify_answer ──────────→ END
                       │
                       kb
                       ↓
@@ -17,6 +18,8 @@
 保证用户体验上不会死循环或空手而归。
 """
 from __future__ import annotations
+
+from time import perf_counter
 
 from langgraph.graph import END, START, StateGraph
 
@@ -35,14 +38,14 @@ def build_graph(with_reflect: bool = True):
     graph.add_node("reflect", nodes.reflect_node)
     graph.add_node("finalize", nodes.finalize_node)
     graph.add_node("chat_answer", nodes.chitchat_node)
+    graph.add_node("clarify_answer", nodes.clarify_node)
     graph.add_node("decline", nodes.decline_node)
     graph.add_node("bump_retry", lambda s: {"retry_count": s.get("retry_count", 0) + 1})
-
     graph.add_edge(START, "rewrite")
     graph.add_edge("rewrite", "route")
     graph.add_conditional_edges(
         "route", nodes.route_edge,
-        {"kb": "retrieve", "chitchat": "chat_answer"},
+        {"kb": "retrieve", "chitchat": "chat_answer", "clarify": "clarify_answer"},
     )
     graph.add_conditional_edges(
         "retrieve", nodes.relevance_edge,
@@ -59,6 +62,7 @@ def build_graph(with_reflect: bool = True):
         graph.add_edge("generate", "finalize")
     graph.add_edge("finalize", END)
     graph.add_edge("chat_answer", END)
+    graph.add_edge("clarify_answer", END)
     graph.add_edge("decline", END)
 
     return graph.compile()
@@ -74,27 +78,51 @@ def get_graph(with_reflect: bool = True):
     return _GRAPHS[with_reflect]
 
 
-def ask(query: str, history: list | None = None, with_reflect: bool = True) -> dict:
+def ask(query: str, history: list | None = None, with_reflect: bool = True,
+        *, with_trace: bool = False) -> dict:
     """单轮问答入口。
 
     参数:
         query: 用户当前输入
-        history: LangChain 消息列表（多轮对话历史，可为空）
+        history: 已完成轮次的 LangChain 消息列表，不含当前问题（可为空；兼容旧调用方式）
         with_reflect: 是否启用反思-重试循环（消融实验可关）
+        with_trace: 保存节点输出与近似节点耗时，供逐题评测和失败定位
     返回:
         {"answer": str, "sources": list[dict], "route": str, "chunks": ..., "reflection": ...}
     """
     graph = get_graph(with_reflect)
-    result = graph.invoke({
+    inputs = {
         "query": query,
         "messages": history or [],
         "retry_count": 0,
-    })
-    return {
+    }
+    trace = []
+    if with_trace:
+        result = inputs
+        previous = perf_counter()
+        for mode, event in graph.stream(inputs, stream_mode=["updates", "values"]):
+            if mode == "values":
+                result = event
+            else:
+                now = perf_counter()
+                for node, updates in event.items():
+                    trace.append({"node": node, "duration_seconds": now - previous,
+                                  "updates": updates})
+                previous = now
+    else:
+        result = graph.invoke(inputs)
+    output = {
         "answer": result.get("final_answer", ""),
         "sources": result.get("sources", []),
         "route": result.get("route", "kb"),
+        "route_reason": result.get("route_reason", ""),
+        "clarification_question": result.get("clarification_question", ""),
         # 检索过程明细（调试/演示用）
         "chunks": result.get("chunks", []),
         "reflection": result.get("reflection", {}),
+        "standalone_query": result.get("standalone_query", query),
+        "retry_count": result.get("retry_count", 0),
     }
+    if with_trace:
+        output["trace"] = trace
+    return output

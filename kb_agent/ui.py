@@ -47,7 +47,6 @@ if prompt := st.chat_input("问点什么，比如：如何在文档中设置查�
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    st.session_state.lc_messages.append(HumanMessage(content=prompt))
     with st.chat_message("assistant"):
         with st.spinner("思考中（改写 → 路由 → 检索 → 生成 → 反思）…"):
             result = ask(prompt, history=st.session_state.lc_messages)
@@ -62,7 +61,9 @@ if prompt := st.chat_input("问点什么，比如：如何在文档中设置查�
     st.session_state.messages.append({
         "role": "assistant", "content": result["answer"], "sources": sources,
     })
-    st.session_state.lc_messages.append(AIMessage(content=result["answer"]))
+    st.session_state.lc_messages.extend([
+        HumanMessage(content=prompt), AIMessage(content=result["answer"]),
+    ])
 
 # ---------- 侧边栏：检索链路明细 ----------
 with st.sidebar:
@@ -72,6 +73,10 @@ with st.sidebar:
         st.info("开始提问后，这里会展示路由决策、检索结果与反思过程。")
     else:
         st.markdown(f"**路由**: `{dbg['route']}`")
+        if dbg.get("route_reason"):
+            st.caption(dbg["route_reason"])
+        st.markdown("**独立查询**")
+        st.write(dbg.get("standalone_query", ""))
         reflection = dbg.get("reflection") or {}
         if reflection.get("ok"):
             st.markdown("**反思**: ✅ 通过")

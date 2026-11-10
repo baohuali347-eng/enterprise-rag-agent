@@ -144,8 +144,14 @@ class HybridRetriever:
 
     # ---------- 主入口 ----------
     def retrieve(self, query: str, top_k: int = config.RERANK_TOP_K,
-                 mode: str = "full") -> list[RetrievedChunk]:
-        """按模式检索，返回去重后的父文档列表。"""
+                 mode: str = "full", *, candidate_k: int | None = None) -> list[RetrievedChunk]:
+        """按模式检索，返回去重父文档；candidate_k 可用于重排候选池对照。"""
+        if top_k <= 0:
+            raise ValueError("top_k 必须大于 0")
+        if mode not in {"dense", "sparse", "hybrid", "full"}:
+            raise ValueError(f"未知检索模式: {mode}")
+        if candidate_k is not None and (mode != "full" or candidate_k < top_k):
+            raise ValueError("candidate_k 仅适用于 full 模式，且不得小于 top_k")
         if mode == "dense":
             scored = self._dense_scores(query, top_k=max(top_k, config.DENSE_TOP_K))
             return self._to_results(scored, top_k)
@@ -162,7 +168,9 @@ class HybridRetriever:
         dense_rank = self._dense_search(query)
         sparse_rank = self._sparse_search(query)
         fused = self.rrf_fuse(dense_rank, sparse_rank)
-        candidates = fused[: max(top_k * 4, 20)]
+        # 无重排对照沿用原候选规模；full 的候选预算独立于最终输出数量。
+        pool_size = (candidate_k if candidate_k is not None else max(top_k, config.RERANK_CANDIDATE_K))
+        candidates = fused[:pool_size if mode == "full" else max(top_k * 4, 20)]
         if not candidates:
             return []
         if mode == "hybrid":
@@ -175,17 +183,14 @@ class HybridRetriever:
             return self._to_results(ordered, top_k)
 
         # full：交叉编码器精排
-        pairs = [(query, self._child_by_id[cid]["text"]) for cid in candidates if cid in self._child_by_id]
+        candidate_ids = [cid for cid in candidates if cid in self._child_by_id]
+        pairs = [(query, self._child_by_id[cid]["text"]) for cid in candidate_ids]
         if not pairs:
             return []
         scores = self.reranker.predict(pairs)
-        ranked = sorted(zip(pairs, scores), key=lambda x: -x[1])
-        ordered = []
-        for (_, ctext), score in ranked:
-            cid = next((c for c in candidates
-                        if c in self._child_by_id and self._child_by_id[c]["text"] == ctext), None)
-            if cid is not None:
-                ordered.append((cid, float(score)))
+        # 分数按输入顺序对应 ID；重复文本可以属于不同文档，不能按文本反查 ID。
+        ranked = sorted(zip(candidate_ids, scores), key=lambda x: -x[1])
+        ordered = [(cid, float(score)) for cid, score in ranked]
         return self._to_results(ordered, top_k)
 
 

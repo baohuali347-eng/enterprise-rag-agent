@@ -1,4 +1,4 @@
-.PHONY: crawl parse chunk index ask ui eval evalset test
+.PHONY: crawl parse chunk index ask ui eval evalset ablate scenarios scenarios-check test pipeline
 
 # 数据管线
 crawl:   ## 爬取飞书帮助中心文章
@@ -26,6 +26,12 @@ evalset: ## 构造评测集（需要 API key）
 
 eval:    ## 跑评测并输出报告（需要 API key）
 	uv run python -m kb_agent.eval.run_eval
+
+scenarios-check: ## 校验人工场景题集与原文依据（不调用 API）
+	uv run python -m kb_agent.eval.run_scenarios --validate-only
+
+scenarios: ## 跑用户场景评测（需要 API key；保留每轮结果、节点轨迹和延迟）
+	uv run python -m kb_agent.eval.run_scenarios
 
 ablate:  ## 消融实验（检索部分无需 API key）
 	uv run python -m kb_agent.eval.run_ablation
